@@ -332,6 +332,156 @@ function PromptCard({ prompt, accentColor }) {
   );
 }
 
+
+// ── Embedded Slack Summarizer ─────────────────────────────────
+const SLACK_MCP_URL = "https://mcp.slack.com/mcp";
+
+async function callClaude(messages, system = "", mcpServers = []) {
+  const body = { model: "claude-sonnet-4-20250514", max_tokens: 1000, system, messages };
+  if (mcpServers.length) body.mcp_servers = mcpServers;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+function extractText(data) {
+  if (!data?.content) return "";
+  return data.content.filter(b => b.type === "text").map(b => b.text).join("\n");
+}
+
+function SpinnerIcon() {
+  return (
+    <span style={{ display: "inline-block", width: 14, height: 14 }}>
+      <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite", width: 14, height: 14 }}>
+        <circle cx="12" cy="12" r="10" fill="none" stroke={C.teal} strokeWidth="3" strokeDasharray="40 20" strokeLinecap="round" />
+      </svg>
+    </span>
+  );
+}
+
+function SlackSummarizer() {
+  const [channel, setChannel] = useState("");
+  const [msgCount, setMsgCount] = useState(30);
+  const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState("");
+  const [summary, setSummary] = useState(null);
+  const [error, setError] = useState("");
+
+  async function summarize() {
+    if (!channel.trim()) { setError("Please enter a channel name."); return; }
+    setError(""); setLoading(true); setSummary(null);
+    try {
+      setStage("Fetching messages from Slack…");
+      const fetchData = await callClaude(
+        [{ role: "user", content: `Fetch the last ${msgCount} messages from Slack channel #${channel.trim().replace(/^#/, "")}. Return as JSON array with fields: user, text, ts. No markdown.` }],
+        "You are a Slack data agent. Fetch messages and return raw JSON array. No preamble.",
+        [{ type: "url", url: SLACK_MCP_URL, name: "slack" }]
+      );
+      setStage("Analyzing with Claude AI…");
+      const rawText = extractText(fetchData);
+      const summaryData = await callClaude([{
+        role: "user",
+        content: `You are a Delivery PM's AI assistant. Analyze these Slack messages from #${channel} and return ONLY a JSON object (no markdown) with:
+{ "tldr": "2-3 sentence summary", "keyDecisions": ["..."], "actionItems": [{"owner":"...","task":"...","urgency":"high|medium|low"}], "blockers": ["..."], "risks": ["..."], "sentiment": "positive|neutral|tense|urgent", "topContributors": ["..."] }
+
+Messages: ${rawText}`
+      }],
+        "You are a PM assistant. Return ONLY valid JSON, no markdown."
+      );
+      setStage("Formatting insights…");
+      const clean = extractText(summaryData).replace(/\`\`\`json|\`\`\`/g, "").trim();
+      setSummary(JSON.parse(clean));
+    } catch(e) {
+      setError(`Error: ${e.message}. Make sure Slack is connected in Claude settings.`);
+    } finally { setLoading(false); setStage(""); }
+  }
+
+  const sentimentColors = { positive: C.teal, neutral: C.amber, tense: "#FFB347", urgent: C.rose };
+
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
+      {/* Input row */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Channel</div>
+          <div style={{ position: "relative" }}>
+            <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.muted, fontSize: 13 }}>#</span>
+            <input value={channel} onChange={e => setChannel(e.target.value)} onKeyDown={e => e.key === "Enter" && summarize()}
+              placeholder="general" style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 7, padding: "9px 10px 9px 24px", color: C.text, fontSize: 13, fontFamily: "'DM Mono', monospace", outline: "none" }} />
+          </div>
+        </div>
+        <div style={{ minWidth: 110 }}>
+          <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Messages</div>
+          <select value={msgCount} onChange={e => setMsgCount(Number(e.target.value))}
+            style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 7, padding: "9px 10px", color: C.text, fontSize: 13, fontFamily: "'DM Mono', monospace", outline: "none" }}>
+            {[10,20,30,50].map(n => <option key={n} value={n}>Last {n}</option>)}
+          </select>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end" }}>
+          <button onClick={summarize} disabled={loading} style={{ background: loading ? C.border : C.teal, color: loading ? C.muted : C.bg, border: "none", borderRadius: 7, padding: "9px 20px", fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
+            {loading ? <><SpinnerIcon /> {stage.split("…")[0]}…</> : "▶ SUMMARIZE"}
+          </button>
+        </div>
+      </div>
+
+      {error && <div style={{ background: "rgba(251,113,133,0.08)", border: "1px solid rgba(251,113,133,0.3)", borderRadius: 8, padding: "10px 14px", color: C.rose, fontSize: 12, marginBottom: 14 }}>⚠ {error}</div>}
+
+      {summary && (
+        <div style={{ animation: "fadeUp 0.3s ease both" }}>
+          {/* TL;DR */}
+          <div style={{ background: `rgba(45,212,191,0.06)`, border: `1px solid rgba(45,212,191,0.2)`, borderRadius: 10, padding: "16px 18px", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+              <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>⚡ TL;DR — #{channel}</span>
+              <span style={{ fontSize: 10, color: sentimentColors[summary.sentiment] || C.amber, fontFamily: "'DM Mono', monospace", fontWeight: 700, background: `${sentimentColors[summary.sentiment]}15`, border: `1px solid ${sentimentColors[summary.sentiment]}40`, borderRadius: 3, padding: "1px 7px", textTransform: "uppercase" }}>{summary.sentiment}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: C.text, lineHeight: 1.7 }}>{summary.tldr}</p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            {/* Action Items */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+              <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>✅ Action Items</div>
+              {summary.actionItems?.length ? summary.actionItems.map((a,i) => (
+                <div key={i} style={{ marginBottom: 8 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "'DM Mono', monospace", color: a.urgency==="high"?C.rose:a.urgency==="medium"?C.amber:C.teal, background: `${a.urgency==="high"?C.rose:a.urgency==="medium"?C.amber:C.teal}15`, border: `1px solid ${a.urgency==="high"?C.rose:a.urgency==="medium"?C.amber:C.teal}30`, borderRadius: 3, padding: "1px 6px", textTransform: "uppercase", marginRight: 6 }}>{a.urgency}</span>
+                  <span style={{ fontSize: 12, color: C.text }}>{a.task}</span>
+                  {a.owner !== "unknown" && <div style={{ fontSize: 10, color: C.muted, marginTop: 2, marginLeft: 2 }}>→ {a.owner}</div>}
+                </div>
+              )) : <span style={{ fontSize: 12, color: C.muted }}>No action items found</span>}
+            </div>
+            {/* Blockers & Decisions */}
+            <div>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>🚧 Blockers</div>
+                {summary.blockers?.length ? summary.blockers.map((b,i) => <div key={i} style={{ fontSize: 12, color: C.text, display: "flex", gap: 6, marginBottom: 4 }}><span style={{ color: C.rose }}>›</span>{b}</div>) : <span style={{ fontSize: 12, color: C.muted }}>✓ No blockers</span>}
+              </div>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+                <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>🎯 Decisions</div>
+                {summary.keyDecisions?.length ? summary.keyDecisions.map((d,i) => <div key={i} style={{ fontSize: 12, color: C.text, display: "flex", gap: 6, marginBottom: 4 }}><span style={{ color: C.teal }}>›</span>{d}</div>) : <span style={{ fontSize: 12, color: C.muted }}>No decisions recorded</span>}
+              </div>
+            </div>
+          </div>
+          {summary.topContributors?.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace" }}>👥 Active:</span>
+              {summary.topContributors.map((c,i) => <span key={i} style={{ background: "rgba(245,166,35,0.1)", color: C.amber, border: "1px solid rgba(245,166,35,0.2)", borderRadius: 20, padding: "2px 10px", fontSize: 11 }}>{c}</span>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!summary && !loading && !error && (
+        <div style={{ textAlign: "center", padding: "24px 0", color: C.muted }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
+          <div style={{ fontSize: 13 }}>Enter a Slack channel and click Summarize</div>
+          <div style={{ fontSize: 11, marginTop: 4, color: "#4a453d" }}>Requires Slack MCP connected in Claude settings</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PMHub() {
   const [activeTab, setActiveTab] = useState("playbook");
   const [activePain, setActivePain] = useState("stakeholder");
@@ -351,10 +501,12 @@ export default function PMHub() {
       fontFamily: "'Barlow', sans-serif",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        html, body, #root { background: #0F0E0B !important; min-height: 100vh; }
         * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar { width: 4px; background: #0F0E0B; }
+        ::-webkit-scrollbar-track { background: #0F0E0B; }
         ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 2px; }
+        ::-webkit-scrollbar-corner { background: #0F0E0B; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
         @keyframes grain {
           0%, 100% { transform: translate(0, 0); }
@@ -574,79 +726,52 @@ export default function PMHub() {
         {/* ══ TOOLS TAB ══ */}
         {activeTab === "tools" && (
           <div style={{ animation: "fadeUp 0.35s ease both" }}>
-            <div style={{ marginBottom: 28 }}>
-              <h2 style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: 32,
-                fontWeight: 800,
-                color: C.white,
-                margin: "0 0 8px",
-                textTransform: "uppercase",
-              }}>Live Workflow Lab</h2>
+            <div style={{ marginBottom: 24 }}>
+              <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: C.white, margin: "0 0 8px", textTransform: "uppercase" }}>
+                Live Workflow Lab
+              </h2>
               <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
-                AI-powered tools built for real Delivery PM workflows. Click to try.
+                AI-powered tools built for real Delivery PM workflows — use them right here.
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
-              {workflowTools.map((t, i) => (
-                <div
-                  key={i}
-                  className="tool-card"
-                  style={{
-                    background: C.card,
-                    border: `1px solid ${C.border}`,
-                    borderRadius: 12,
-                    padding: "22px",
-                    cursor: t.tag === "Live Tool" ? "pointer" : "default",
-                    opacity: t.tag === "Coming Soon" ? 0.6 : 1,
-                  }}
-                >
-                  <div style={{ fontSize: 28, marginBottom: 12 }}>{t.emoji}</div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: C.cream, fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.02em" }}>
-                      {t.name}
-                    </div>
-                    <Tag color={t.tag === "Live Tool" ? C.teal : C.muted} small>{t.tag}</Tag>
+            {/* ── Slack Summarizer — Live ── */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <span style={{ fontSize: 20 }}>💬</span>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.02em" }}>Slack Channel Summarizer</span>
+                    <Tag color={C.teal} small>Live Tool</Tag>
                   </div>
-                  <p style={{ margin: "0 0 16px", fontSize: 13, color: C.mutedLight, lineHeight: 1.6 }}>{t.desc}</p>
-                  {t.tag === "Live Tool" && (
-                    <div style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      color: C.teal,
-                      fontSize: 12,
-                      fontFamily: "'DM Mono', monospace",
-                      fontWeight: 700,
-                      letterSpacing: "0.06em",
-                    }}>
-                      LAUNCH TOOL →
-                    </div>
-                  )}
+                  <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Reads any Slack channel and extracts blockers, decisions & action items using Claude AI</div>
                 </div>
-              ))}
+              </div>
+              <SlackSummarizer />
             </div>
 
-            {/* How it's built section */}
-            <div style={{
-              background: C.card,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              padding: "24px",
-              marginTop: 24,
-            }}>
-              <div style={{ fontSize: 11, color: C.amber, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>
-                Under the Hood
+            {/* ── Coming Soon Tools ── */}
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Coming Soon</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+                {workflowTools.filter(t => t.tag === "Coming Soon").map((t, i) => (
+                  <div key={i} className="tool-card" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px", opacity: 0.55 }}>
+                    <div style={{ fontSize: 24, marginBottom: 10 }}>{t.emoji}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.cream, fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", marginBottom: 6 }}>{t.name}</div>
+                    <p style={{ margin: 0, fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>{t.desc}</p>
+                  </div>
+                ))}
               </div>
-              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: C.white, margin: "0 0 12px", textTransform: "uppercase" }}>
-                Every tool is built with Claude + MCP
-              </h3>
-              <p style={{ color: C.mutedLight, fontSize: 14, lineHeight: 1.7, margin: "0 0 16px" }}>
-                These aren't black boxes. Each workflow uses the Anthropic API + Model Context Protocol to connect to real tools (Slack, Jira, etc). The prompts are engineered for PM context — not generic LLM outputs.
-              </p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["Claude Sonnet", "MCP Protocol", "Slack API", "React", "Anthropic API"].map(t => (
+            </div>
+
+            {/* Tech stack */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px 20px", marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <div>
+                <div style={{ fontSize: 11, color: C.amber, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Under the Hood</div>
+                <div style={{ fontSize: 13, color: C.mutedLight }}>Built with Claude API + MCP — real connections, not mock data</div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {["Claude Sonnet", "Slack MCP", "React", "Anthropic API"].map(t => (
                   <Tag key={t} color={C.muted} small>{t}</Tag>
                 ))}
               </div>
