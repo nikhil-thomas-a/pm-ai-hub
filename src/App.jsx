@@ -1,38 +1,38 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
+// ── NEW COLOUR PALETTE: Deep navy + electric cyan + slate ──
 const C = {
-  bg: "#0F0E0B",
-  surface: "#161410",
-  card: "#1C1A16",
-  cardHover: "#211F1A",
-  border: "#2A2720",
-  borderHover: "#3D3A32",
-  amber: "#F5A623",
-  amberDim: "rgba(245,166,35,0.1)",
-  amberGlow: "rgba(245,166,35,0.2)",
-  cream: "#F2EDE4",
-  muted: "#6B6357",
-  mutedLight: "#8C8278",
-  teal: "#2DD4BF",
-  rose: "#FB7185",
-  text: "#E8E3D8",
-  white: "#FAF8F4",
+  bg: "#080E1A",
+  surface: "#0D1525",
+  card: "#111D30",
+  cardHover: "#162338",
+  border: "#1E2E47",
+  borderHover: "#2A4060",
+  cyan: "#00D4FF",
+  cyanDim: "rgba(0,212,255,0.1)",
+  cyanGlow: "rgba(0,212,255,0.2)",
+  indigo: "#6C8EFF",
+  indigoDim: "rgba(108,142,255,0.1)",
+  mint: "#00E5B0",
+  mintDim: "rgba(0,229,176,0.1)",
+  rose: "#FF6B8A",
+  roseDim: "rgba(255,107,138,0.1)",
+  text: "#C8D8F0",
+  textBright: "#E8F0FF",
+  muted: "#4A6080",
+  mutedLight: "#6A85A8",
+  white: "#F0F6FF",
 };
 
+// ── Data ────────────────────────────────────────────────────────
 const painPoints = [
   {
-    id: "stakeholder",
-    emoji: "📊",
-    label: "Stakeholder Reporting",
-    color: C.amber,
-    tag: "HIGH IMPACT",
-    tagColor: C.amber,
+    id: "stakeholder", emoji: "📊", label: "Stakeholder Reporting",
+    color: C.cyan, tag: "HIGH IMPACT",
     desc: "Turn messy sprint data into exec-ready updates in seconds.",
     prompts: [
       {
-        title: "Weekly Status Report Generator",
-        difficulty: "Beginner",
-        time: "2 min",
+        title: "Weekly Status Report Generator", difficulty: "Beginner", time: "2 min",
         problem: "Writing status reports takes 45 mins every Friday. Stakeholders want RAG status, blockers, and next steps — but you're pulling from 4 different tools.",
         prompt: `You are a senior Delivery PM. Given the following sprint data, write a concise weekly status report for executive stakeholders.
 
@@ -48,16 +48,21 @@ TONE: Confident, direct, no jargon. Executives should scan it in 60 seconds.
 SPRINT DATA:
 [Paste your Jira sprint summary / standup notes here]`,
         tips: ["Add 'Audience: CTO' or 'Audience: Client' to adjust tone", "Include velocity numbers for pattern detection", "Paste Slack standup thread directly — Claude handles messy input"],
+        steps: [
+          "Copy your Jira sprint summary or paste your standup notes",
+          "Replace [SPRINT DATA] at the bottom of the prompt with your notes",
+          "Paste the full prompt into Claude.ai or ChatGPT",
+          "Review the output — adjust RAG status if needed",
+          "Copy the report into your email or Confluence page"
+        ]
       },
       {
-        title: "Stakeholder Tailoring Engine",
-        difficulty: "Intermediate",
-        time: "3 min",
+        title: "Stakeholder Tailoring Engine", difficulty: "Intermediate", time: "3 min",
         problem: "Your CTO, CPO, and client all want updates — but need totally different levels of detail and framing.",
         prompt: `I need to communicate the same project update to three different stakeholders. Rewrite the update below THREE times:
 
 1. CTO VERSION: Technical depth, system risks, engineering velocity
-2. CPO VERSION: Feature progress, user impact, roadmap alignment  
+2. CPO VERSION: Feature progress, user impact, roadmap alignment
 3. CLIENT VERSION: Milestone status, value delivered, what's next
 
 Keep each under 150 words. No internal jargon in the client version.
@@ -65,22 +70,23 @@ Keep each under 150 words. No internal jargon in the client version.
 UPDATE TO ADAPT:
 [Paste your raw update here]`,
         tips: ["Works great with rough bullet points — doesn't need polished input", "Add 'Relationship: new client, trust is fragile' for tone calibration"],
+        steps: [
+          "Write a rough 3-5 sentence update about where the project stands",
+          "Paste it at the bottom of the prompt replacing [UPDATE TO ADAPT]",
+          "Run it in Claude — you'll get 3 tailored versions instantly",
+          "Pick the right version per audience and send",
+          "Pro tip: Save your go-to update as a template for next week"
+        ]
       },
     ],
   },
   {
-    id: "escalation",
-    emoji: "🚨",
-    label: "Escalation & Incidents",
-    color: C.rose,
-    tag: "CRITICAL PATH",
-    tagColor: C.rose,
+    id: "escalation", emoji: "🚨", label: "Escalation & Incidents",
+    color: C.rose, tag: "CRITICAL PATH",
     desc: "Draft escalations, triage incidents, and communicate under pressure.",
     prompts: [
       {
-        title: "Escalation Draft Generator",
-        difficulty: "Beginner",
-        time: "90 sec",
+        title: "Escalation Draft Generator", difficulty: "Beginner", time: "90 sec",
         problem: "Something just broke or missed. You need to escalate fast but professionally — without panic, blame, or missing context.",
         prompt: `You are a calm, senior Delivery PM. Draft an escalation message based on the situation below.
 
@@ -99,12 +105,17 @@ SITUATION:
 AUDIENCE:
 [Who are you escalating to? e.g. VP Engineering, Client, Steering Committee]`,
         tips: ["Include 'we have a workaround' or 'no workaround yet' — changes the tone significantly", "Add timeline: 'this started 2 hours ago' for urgency calibration"],
+        steps: [
+          "Describe the situation in 2-3 plain sentences — what happened, when, and the impact",
+          "Add who you're escalating to at the bottom",
+          "Run the prompt — Claude will structure it professionally in under 10 seconds",
+          "Check the 'What I Need From You' section — make sure the ask is specific",
+          "Send within 5 minutes of the incident — speed matters in escalations"
+        ]
       },
       {
-        title: "Incident Post-Mortem Drafter",
-        difficulty: "Intermediate",
-        time: "5 min",
-        problem: "Post-mortems are painful to write. You have raw notes, Slack threads, and a tired team — but leadership wants a polished document by EOD.",
+        title: "Incident Post-Mortem Drafter", difficulty: "Intermediate", time: "5 min",
+        problem: "Post-mortems are painful to write. You have raw notes and a tired team — but leadership wants a polished document by EOD.",
         prompt: `Write a blameless post-mortem document from the notes below.
 
 SECTIONS TO INCLUDE:
@@ -120,22 +131,23 @@ PRINCIPLE: Blameless. Focus on systems and processes, not individuals.
 RAW NOTES / SLACK THREAD:
 [Paste your incident notes here]`,
         tips: ["'Blameless' framing is key — explicitly ask Claude to avoid naming individuals in blame contexts", "Add 'customer-facing impact: yes/no' to adjust severity language"],
+        steps: [
+          "Gather your raw notes — Slack thread, incident log, or bullet points all work",
+          "Paste everything into the prompt at the bottom (messy is fine)",
+          "Run it — Claude will structure it into a proper post-mortem",
+          "Review the Root Cause section most carefully — this needs your knowledge",
+          "Share with the team before finalising — get sign-off on action item owners"
+        ]
       },
     ],
   },
   {
-    id: "sprint",
-    emoji: "⚡",
-    label: "Sprint & Delivery Tracking",
-    color: C.teal,
-    tag: "DAILY USE",
-    tagColor: C.teal,
+    id: "sprint", emoji: "⚡", label: "Sprint & Delivery Tracking",
+    color: C.mint, tag: "DAILY USE",
     desc: "Spot risks early, run better retros, and keep delivery on track.",
     prompts: [
       {
-        title: "Sprint Risk Radar",
-        difficulty: "Beginner",
-        time: "2 min",
+        title: "Sprint Risk Radar", difficulty: "Beginner", time: "2 min",
         problem: "You're mid-sprint and something feels off — but you can't pinpoint what. You need a second brain to pressure-test your delivery.",
         prompt: `Act as a delivery risk analyst. Review this sprint status and identify risks I might be missing.
 
@@ -155,12 +167,17 @@ OUTPUT FORMAT:
 SPRINT DATA:
 [Paste sprint board summary, standup notes, or Jira export]`,
         tips: ["Paste your burndown chart description for velocity analysis", "Include team OOO calendar notes — Claude will factor in capacity"],
+        steps: [
+          "Export or copy your current sprint board status (even a screenshot description works)",
+          "Add any OOO or capacity notes for the team this week",
+          "Run the prompt mid-sprint (Wednesday is ideal — enough data, still time to act)",
+          "Focus on the 'Questions to ask in standup' section — use them verbatim",
+          "Run this every sprint and compare — patterns become visible over time"
+        ]
       },
       {
-        title: "Retro Insight Extractor",
-        difficulty: "Intermediate",
-        time: "4 min",
-        problem: "Retrospectives generate great conversation but the insights disappear. Patterns repeat sprint after sprint because no one tracks themes.",
+        title: "Retro Insight Extractor", difficulty: "Intermediate", time: "4 min",
+        problem: "Retrospectives generate great conversation but insights disappear. Patterns repeat because no one tracks themes across sprints.",
         prompt: `Analyze these retrospective notes from the last [N] sprints and identify systemic patterns.
 
 FIND:
@@ -175,47 +192,34 @@ FORMAT: Executive summary + detailed breakdown. Actionable, not academic.
 RETRO NOTES:
 [Paste multi-sprint retro notes here — messy is fine]`,
         tips: ["Works best with 3+ sprints of data", "Ask Claude to 'prioritize by frequency AND team energy cost' for better ranking"],
+        steps: [
+          "Collect retro notes from your last 3-5 sprints (Confluence, Miro, or even photos of sticky notes)",
+          "Paste them all into the prompt — label each sprint (Sprint 12, Sprint 13, etc.)",
+          "Run it — Claude will surface patterns you've been living too close to see",
+          "Share the 'What Went Well' section with the team first — morale boost before the hard stuff",
+          "Turn the top 3 improvements into actual sprint items with owners"
+        ]
       },
     ],
   },
 ];
 
 const workflowTools = [
-  { emoji: "💬", name: "Slack Summarizer", desc: "AI reads your Slack channels and extracts blockers, decisions & action items", tag: "Live Tool", color: C.amber },
-  { emoji: "📋", name: "RAID Log Agent", desc: "Paste meeting notes — Claude populates your RAID log automatically", tag: "Coming Soon", color: C.muted },
+  { emoji: "📋", name: "RAID Log Agent", desc: "Paste meeting notes — Claude auto-populates your RAID log", tag: "Coming Soon", color: C.muted },
   { emoji: "📊", name: "Status Report Bot", desc: "Connects to Jira + Slack, drafts your weekly report for approval", tag: "Coming Soon", color: C.muted },
-  { emoji: "🔥", name: "Escalation Triage", desc: "Classifies incidents by severity and routes to right owner with draft comms", tag: "Coming Soon", color: C.muted },
+  { emoji: "🔥", name: "Escalation Triage", desc: "Classifies incidents by severity and routes to the right owner", tag: "Coming Soon", color: C.muted },
 ];
 
-const caseStudies = [
-  {
-    tag: "Case Study 01",
-    title: "How I saved 3 hours/week on stakeholder reporting using a 4-line prompt",
-    pain: "Stakeholder Reporting",
-    painColor: C.amber,
-    excerpt: "Every Friday I was pulling data from Jira, Confluence, and Slack to write a status report that 3 executives would skim in 90 seconds. Here's the exact prompt chain I built to automate it.",
-    steps: ["Extracted Jira sprint data via API", "Fed into Claude with stakeholder context", "Added approval step before sending", "Saved ~3hrs/week across a 6-month delivery"],
-  },
-  {
-    tag: "Case Study 02",
-    title: "Using AI to run better retros when your team is in 3 timezones",
-    pain: "Sprint Tracking",
-    painColor: C.teal,
-    excerpt: "Async retros are hard. Themes get lost, action items die, and the same problems recur. I built a prompt workflow that analyzes retro notes and surfaces what actually matters.",
-    steps: ["Collected async retro inputs via Slack", "Claude clustered themes across 8 sprints", "Generated ranked action items with owners", "Team resolved 3 recurring blockers within 2 sprints"],
-  },
-];
+// ── Components ───────────────────────────────────────────────────
 
-// ── Components ──────────────────────────────────────────────────
-
-function Tag({ children, color, small }) {
+function Chip({ children, color, small }) {
   return (
     <span style={{
       display: "inline-block",
       background: `${color}18`,
       color,
       border: `1px solid ${color}40`,
-      borderRadius: 3,
+      borderRadius: 4,
       padding: small ? "1px 7px" : "3px 10px",
       fontSize: small ? 10 : 11,
       fontWeight: 700,
@@ -226,14 +230,15 @@ function Tag({ children, color, small }) {
   );
 }
 
-function DifficultyPip({ level }) {
-  const colors = { Beginner: C.teal, Intermediate: C.amber, Advanced: C.rose };
-  return <Tag color={colors[level] || C.muted} small>{level}</Tag>;
+function DiffPip({ level }) {
+  const map = { Beginner: C.mint, Intermediate: C.cyan, Advanced: C.rose };
+  return <Chip color={map[level] || C.muted} small>{level}</Chip>;
 }
 
 function PromptCard({ prompt, accentColor }) {
   const [copied, setCopied] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState("prompt");
 
   const copy = () => {
     navigator.clipboard.writeText(prompt.prompt);
@@ -243,98 +248,100 @@ function PromptCard({ prompt, accentColor }) {
 
   return (
     <div style={{
-      background: C.card,
-      border: `1px solid ${expanded ? accentColor + "40" : C.border}`,
-      borderRadius: 10,
-      marginBottom: 12,
-      overflow: "hidden",
-      transition: "border-color 0.2s",
+      background: C.card, border: `1px solid ${open ? accentColor + "50" : C.border}`,
+      borderRadius: 10, marginBottom: 12, overflow: "hidden", transition: "border-color 0.2s",
     }}>
-      {/* Header */}
-      <div
-        onClick={() => setExpanded(!expanded)}
-        style={{
-          padding: "16px 20px",
-          cursor: "pointer",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
+      <div onClick={() => setOpen(!open)} style={{ padding: "16px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-            <DifficultyPip level={prompt.difficulty} />
+          <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap", alignItems: "center" }}>
+            <DiffPip level={prompt.difficulty} />
             <span style={{ color: C.muted, fontSize: 11, fontFamily: "'DM Mono', monospace" }}>⏱ {prompt.time}</span>
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.cream, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.02em" }}>
-            {prompt.title}
-          </div>
-          <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prompt.problem}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.textBright, fontFamily: "'Sora', sans-serif" }}>{prompt.title}</div>
+          <div style={{ fontSize: 12, color: C.mutedLight, marginTop: 4, lineHeight: 1.5 }}>{prompt.problem}</div>
         </div>
-        <span style={{ color: C.muted, fontSize: 18, flexShrink: 0, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>↓</span>
+        <span style={{ color: C.muted, fontSize: 18, flexShrink: 0, display: "inline-block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>↓</span>
       </div>
 
-      {/* Expanded */}
-      {expanded && (
+      {open && (
         <div style={{ borderTop: `1px solid ${C.border}`, padding: "16px 20px" }}>
-          {/* Prompt */}
-          <div style={{
-            background: C.surface,
-            border: `1px solid ${C.border}`,
-            borderRadius: 8,
-            padding: "14px 16px",
-            marginBottom: 14,
-            position: "relative",
-          }}>
-            <pre style={{
-              margin: 0, fontSize: 12, color: C.text,
-              fontFamily: "'DM Mono', monospace",
-              whiteSpace: "pre-wrap", lineHeight: 1.7,
-            }}>{prompt.prompt}</pre>
-          </div>
-
-          {/* Tips */}
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
-              💡 Pro Tips
-            </div>
-            {prompt.tips.map((t, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-                <span style={{ color: accentColor, flexShrink: 0 }}>→</span>
-                <span style={{ fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>{t}</span>
-              </div>
+          {/* Mini tabs */}
+          <div style={{ display: "flex", gap: 0, marginBottom: 14, borderBottom: `1px solid ${C.border}` }}>
+            {["prompt", "how-to"].map(t => (
+              <button key={t} onClick={() => setTab(t)} style={{
+                background: "none", border: "none", borderBottom: `2px solid ${tab === t ? accentColor : "transparent"}`,
+                color: tab === t ? accentColor : C.muted, padding: "6px 16px", fontSize: 11,
+                fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em",
+                cursor: "pointer", textTransform: "uppercase", marginBottom: -1, transition: "all 0.15s",
+              }}>
+                {t === "prompt" ? "📋 Prompt" : "📖 Step-by-Step"}
+              </button>
             ))}
           </div>
 
-          {/* Copy button */}
-          <button
-            onClick={copy}
-            style={{
-              background: copied ? `${C.teal}20` : `${accentColor}15`,
-              border: `1px solid ${copied ? C.teal : accentColor}60`,
-              color: copied ? C.teal : accentColor,
-              borderRadius: 6,
-              padding: "8px 18px",
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: "'DM Mono', monospace",
-              letterSpacing: "0.06em",
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-          >
-            {copied ? "✓ COPIED" : "COPY PROMPT"}
-          </button>
+          {tab === "prompt" && (
+            <>
+              <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "14px 16px", marginBottom: 14 }}>
+                <pre style={{ margin: 0, fontSize: 12, color: C.text, fontFamily: "'DM Mono', monospace", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>
+                  {prompt.prompt}
+                </pre>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>💡 Pro Tips</div>
+                {prompt.tips.map((t, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+                    <span style={{ color: accentColor, flexShrink: 0 }}>→</span>
+                    <span style={{ fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={copy} style={{
+                background: copied ? `${C.mint}20` : `${accentColor}15`, border: `1px solid ${copied ? C.mint : accentColor}60`,
+                color: copied ? C.mint : accentColor, borderRadius: 6, padding: "8px 18px",
+                fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", cursor: "pointer", transition: "all 0.2s",
+              }}>
+                {copied ? "✓ COPIED TO CLIPBOARD" : "COPY PROMPT"}
+              </button>
+            </>
+          )}
+
+          {tab === "how-to" && (
+            <div>
+              <div style={{ fontSize: 12, color: C.mutedLight, marginBottom: 16, lineHeight: 1.6 }}>
+                New to AI prompting? Follow these steps exactly — no experience needed.
+              </div>
+              {prompt.steps.map((step, i) => (
+                <div key={i} style={{ display: "flex", gap: 14, marginBottom: 14, alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                    background: `${accentColor}15`, border: `1px solid ${accentColor}40`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 12, fontWeight: 700, color: accentColor, fontFamily: "'DM Mono', monospace",
+                  }}>{i + 1}</div>
+                  <div style={{ paddingTop: 4 }}>
+                    <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>{step}</div>
+                    {i < prompt.steps.length - 1 && (
+                      <div style={{ width: 1, height: 8, background: C.border, marginLeft: 0, marginTop: 8 }} />
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div style={{ background: `${accentColor}08`, border: `1px dashed ${accentColor}30`, borderRadius: 8, padding: "12px 14px", marginTop: 8 }}>
+                <div style={{ fontSize: 11, color: accentColor, fontFamily: "'DM Mono', monospace", fontWeight: 700, marginBottom: 4 }}>WHERE TO RUN THIS PROMPT</div>
+                <div style={{ fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>
+                  Open <strong style={{ color: C.text }}>claude.ai</strong> or <strong style={{ color: C.text }}>chat.openai.com</strong> in a new tab, paste the prompt, and hit enter. No account setup required to try Claude — it's free to start.
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-
-// ── Embedded Slack Summarizer ─────────────────────────────────
-const SLACK_MCP_URL = "https://mcp.slack.com/mcp";
+// ── Slack Summarizer ─────────────────────────────────────────────
+const SLACK_MCP = "https://mcp.slack.com/mcp";
 
 async function callClaude(messages, system = "", mcpServers = []) {
   const body = { model: "claude-sonnet-4-20250514", max_tokens: 1000, system, messages };
@@ -345,18 +352,16 @@ async function callClaude(messages, system = "", mcpServers = []) {
   return res.json();
 }
 
-function extractText(data) {
+function getTextFromResponse(data) {
   if (!data?.content) return "";
   return data.content.filter(b => b.type === "text").map(b => b.text).join("\n");
 }
 
-function SpinnerIcon() {
+function Spinner() {
   return (
-    <span style={{ display: "inline-block", width: 14, height: 14 }}>
-      <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite", width: 14, height: 14 }}>
-        <circle cx="12" cy="12" r="10" fill="none" stroke={C.teal} strokeWidth="3" strokeDasharray="40 20" strokeLinecap="round" />
-      </svg>
-    </span>
+    <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite", width: 14, height: 14, display: "inline-block", verticalAlign: "middle" }}>
+      <circle cx="12" cy="12" r="10" fill="none" stroke={C.cyan} strokeWidth="3" strokeDasharray="40 20" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -368,533 +373,388 @@ function SlackSummarizer() {
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState("");
 
-  async function summarize() {
+  async function run() {
     if (!channel.trim()) { setError("Please enter a channel name."); return; }
     setError(""); setLoading(true); setSummary(null);
     try {
-      setStage("Fetching messages from Slack…");
+      setStage("Connecting to Slack…");
       const fetchData = await callClaude(
-        [{ role: "user", content: `Fetch the last ${msgCount} messages from Slack channel #${channel.trim().replace(/^#/, "")}. Return as JSON array with fields: user, text, ts. No markdown.` }],
-        "You are a Slack data agent. Fetch messages and return raw JSON array. No preamble.",
-        [{ type: "url", url: SLACK_MCP_URL, name: "slack" }]
+        [{ role: "user", content: `Fetch the last ${msgCount} messages from Slack channel #${channel.trim().replace(/^#/, "")}. Return as JSON array: [{user, text, ts}]. No markdown.` }],
+        "You are a Slack data agent. Return raw JSON array only.",
+        [{ type: "url", url: SLACK_MCP, name: "slack" }]
       );
-      setStage("Analyzing with Claude AI…");
-      const rawText = extractText(fetchData);
+      setStage("Analysing with Claude AI…");
+      const rawText = getTextFromResponse(fetchData);
       const summaryData = await callClaude([{
         role: "user",
-        content: `You are a Delivery PM's AI assistant. Analyze these Slack messages from #${channel} and return ONLY a JSON object (no markdown) with:
-{ "tldr": "2-3 sentence summary", "keyDecisions": ["..."], "actionItems": [{"owner":"...","task":"...","urgency":"high|medium|low"}], "blockers": ["..."], "risks": ["..."], "sentiment": "positive|neutral|tense|urgent", "topContributors": ["..."] }
+        content: `Analyse these Slack messages from #${channel} as a Delivery PM assistant. Return ONLY a JSON object (no markdown) exactly like this:
+{"tldr":"2-3 sentence summary","keyDecisions":["..."],"actionItems":[{"owner":"...","task":"...","urgency":"high|medium|low"}],"blockers":["..."],"risks":["..."],"sentiment":"positive|neutral|tense|urgent","topContributors":["..."]}
 
 Messages: ${rawText}`
       }],
-        "You are a PM assistant. Return ONLY valid JSON, no markdown."
+        "Return ONLY valid JSON. No markdown, no explanation."
       );
-      setStage("Formatting insights…");
-      const clean = extractText(summaryData).replace(/\`\`\`json|\`\`\`/g, "").trim();
+      const clean = getTextFromResponse(summaryData).replace(/```json|```/g, "").trim();
       setSummary(JSON.parse(clean));
-    } catch(e) {
-      setError(`Error: ${e.message}. Make sure Slack is connected in Claude settings.`);
+    } catch (e) {
+      setError(`Could not connect: ${e.message}. Make sure Slack MCP is enabled in Claude settings.`);
     } finally { setLoading(false); setStage(""); }
   }
 
-  const sentimentColors = { positive: C.teal, neutral: C.amber, tense: "#FFB347", urgent: C.rose };
+  const sentimentCol = { positive: C.mint, neutral: C.cyan, tense: "#FFB347", urgent: C.rose };
 
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
-      {/* Input row */}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Channel</div>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 22 }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: error || summary ? 16 : 0 }}>
+        <div style={{ flex: 1, minWidth: 160 }}>
+          <div style={{ fontSize: 10, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Channel</div>
           <div style={{ position: "relative" }}>
             <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: C.muted, fontSize: 13 }}>#</span>
-            <input value={channel} onChange={e => setChannel(e.target.value)} onKeyDown={e => e.key === "Enter" && summarize()}
-              placeholder="general" style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 7, padding: "9px 10px 9px 24px", color: C.text, fontSize: 13, fontFamily: "'DM Mono', monospace", outline: "none" }} />
+            <input value={channel} onChange={e => setChannel(e.target.value)} onKeyDown={e => e.key === "Enter" && run()}
+              placeholder="general" style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 7, padding: "9px 10px 9px 24px", color: C.textBright, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
           </div>
         </div>
         <div style={{ minWidth: 110 }}>
-          <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Messages</div>
+          <div style={{ fontSize: 10, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Messages</div>
           <select value={msgCount} onChange={e => setMsgCount(Number(e.target.value))}
-            style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 7, padding: "9px 10px", color: C.text, fontSize: 13, fontFamily: "'DM Mono', monospace", outline: "none" }}>
-            {[10,20,30,50].map(n => <option key={n} value={n}>Last {n}</option>)}
+            style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 7, padding: "9px 10px", color: C.textBright, fontSize: 13, fontFamily: "inherit", outline: "none", cursor: "pointer" }}>
+            {[10, 20, 30, 50].map(n => <option key={n} value={n}>Last {n}</option>)}
           </select>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end" }}>
-          <button onClick={summarize} disabled={loading} style={{ background: loading ? C.border : C.teal, color: loading ? C.muted : C.bg, border: "none", borderRadius: 7, padding: "9px 20px", fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
-            {loading ? <><SpinnerIcon /> {stage.split("…")[0]}…</> : "▶ SUMMARIZE"}
+          <button onClick={run} disabled={loading} style={{
+            background: loading ? C.border : `linear-gradient(135deg, ${C.cyan}, ${C.indigo})`,
+            color: loading ? C.muted : "#080E1A", border: "none", borderRadius: 7,
+            padding: "9px 20px", fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+            letterSpacing: "0.06em", cursor: loading ? "not-allowed" : "pointer",
+            display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", transition: "all 0.2s",
+          }}>
+            {loading ? <><Spinner /> {stage.slice(0, 20)}…</> : "▶ SUMMARIZE"}
           </button>
         </div>
       </div>
 
-      {error && <div style={{ background: "rgba(251,113,133,0.08)", border: "1px solid rgba(251,113,133,0.3)", borderRadius: 8, padding: "10px 14px", color: C.rose, fontSize: 12, marginBottom: 14 }}>⚠ {error}</div>}
+      {error && (
+        <div style={{ background: C.roseDim, border: `1px solid ${C.rose}30`, borderRadius: 8, padding: "10px 14px", color: C.rose, fontSize: 12, marginTop: 12 }}>⚠ {error}</div>
+      )}
 
-      {summary && (
-        <div style={{ animation: "fadeUp 0.3s ease both" }}>
-          {/* TL;DR */}
-          <div style={{ background: `rgba(45,212,191,0.06)`, border: `1px solid rgba(45,212,191,0.2)`, borderRadius: 10, padding: "16px 18px", marginBottom: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+      {!summary && !loading && !error && (
+        <div style={{ textAlign: "center", padding: "28px 0", color: C.muted, borderTop: `1px solid ${C.border}`, marginTop: 16 }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
+          <div style={{ fontSize: 13 }}>Enter a channel name and click Summarize</div>
+          <div style={{ fontSize: 11, marginTop: 4, opacity: 0.6 }}>Requires Slack MCP connected in Claude settings</div>
+        </div>
+      )}
+
+      {summary && !loading && (
+        <div style={{ animation: "fadeUp 0.3s ease both", marginTop: 16 }}>
+          <div style={{ background: C.cyanDim, border: `1px solid rgba(0,212,255,0.2)`, borderRadius: 10, padding: "14px 18px", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
               <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>⚡ TL;DR — #{channel}</span>
-              <span style={{ fontSize: 10, color: sentimentColors[summary.sentiment] || C.amber, fontFamily: "'DM Mono', monospace", fontWeight: 700, background: `${sentimentColors[summary.sentiment]}15`, border: `1px solid ${sentimentColors[summary.sentiment]}40`, borderRadius: 3, padding: "1px 7px", textTransform: "uppercase" }}>{summary.sentiment}</span>
+              <Chip color={sentimentCol[summary.sentiment] || C.cyan} small>{summary.sentiment}</Chip>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: C.text, lineHeight: 1.7 }}>{summary.tldr}</p>
+            <p style={{ margin: 0, fontSize: 13, color: C.textBright, lineHeight: 1.7 }}>{summary.tldr}</p>
           </div>
-
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-            {/* Action Items */}
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>✅ Action Items</div>
-              {summary.actionItems?.length ? summary.actionItems.map((a,i) => (
+              <div style={{ fontSize: 10, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>✅ Action Items</div>
+              {summary.actionItems?.length ? summary.actionItems.map((a, i) => (
                 <div key={i} style={{ marginBottom: 8 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "'DM Mono', monospace", color: a.urgency==="high"?C.rose:a.urgency==="medium"?C.amber:C.teal, background: `${a.urgency==="high"?C.rose:a.urgency==="medium"?C.amber:C.teal}15`, border: `1px solid ${a.urgency==="high"?C.rose:a.urgency==="medium"?C.amber:C.teal}30`, borderRadius: 3, padding: "1px 6px", textTransform: "uppercase", marginRight: 6 }}>{a.urgency}</span>
-                  <span style={{ fontSize: 12, color: C.text }}>{a.task}</span>
+                  <Chip color={a.urgency === "high" ? C.rose : a.urgency === "medium" ? "#FFB347" : C.mint} small>{a.urgency}</Chip>
+                  <span style={{ fontSize: 12, color: C.text, marginLeft: 6 }}>{a.task}</span>
                   {a.owner !== "unknown" && <div style={{ fontSize: 10, color: C.muted, marginTop: 2, marginLeft: 2 }}>→ {a.owner}</div>}
                 </div>
-              )) : <span style={{ fontSize: 12, color: C.muted }}>No action items found</span>}
+              )) : <span style={{ fontSize: 12, color: C.muted }}>None found</span>}
             </div>
-            {/* Blockers & Decisions */}
-            <div>
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
-                <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>🚧 Blockers</div>
-                {summary.blockers?.length ? summary.blockers.map((b,i) => <div key={i} style={{ fontSize: 12, color: C.text, display: "flex", gap: 6, marginBottom: 4 }}><span style={{ color: C.rose }}>›</span>{b}</div>) : <span style={{ fontSize: 12, color: C.muted }}>✓ No blockers</span>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: 1 }}>
+                <div style={{ fontSize: 10, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>🚧 Blockers</div>
+                {summary.blockers?.length ? summary.blockers.map((b, i) => (
+                  <div key={i} style={{ fontSize: 12, color: C.text, display: "flex", gap: 6, marginBottom: 4 }}><span style={{ color: C.rose }}>›</span>{b}</div>
+                )) : <span style={{ fontSize: 12, color: C.muted }}>✓ None</span>}
               </div>
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-                <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>🎯 Decisions</div>
-                {summary.keyDecisions?.length ? summary.keyDecisions.map((d,i) => <div key={i} style={{ fontSize: 12, color: C.text, display: "flex", gap: 6, marginBottom: 4 }}><span style={{ color: C.teal }}>›</span>{d}</div>) : <span style={{ fontSize: 12, color: C.muted }}>No decisions recorded</span>}
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: 1 }}>
+                <div style={{ fontSize: 10, color: C.muted, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>🎯 Decisions</div>
+                {summary.keyDecisions?.length ? summary.keyDecisions.map((d, i) => (
+                  <div key={i} style={{ fontSize: 12, color: C.text, display: "flex", gap: 6, marginBottom: 4 }}><span style={{ color: C.cyan }}>›</span>{d}</div>
+                )) : <span style={{ fontSize: 12, color: C.muted }}>None</span>}
               </div>
             </div>
           </div>
           {summary.topContributors?.length > 0 && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace" }}>👥 Active:</span>
-              {summary.topContributors.map((c,i) => <span key={i} style={{ background: "rgba(245,166,35,0.1)", color: C.amber, border: "1px solid rgba(245,166,35,0.2)", borderRadius: 20, padding: "2px 10px", fontSize: 11 }}>{c}</span>)}
+              <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace" }}>👥</span>
+              {summary.topContributors.map((c, i) => (
+                <span key={i} style={{ background: C.indigoDim, color: C.indigo, border: `1px solid ${C.indigo}30`, borderRadius: 20, padding: "2px 10px", fontSize: 11 }}>{c}</span>
+              ))}
             </div>
           )}
-        </div>
-      )}
-
-      {!summary && !loading && !error && (
-        <div style={{ textAlign: "center", padding: "24px 0", color: C.muted }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
-          <div style={{ fontSize: 13 }}>Enter a Slack channel and click Summarize</div>
-          <div style={{ fontSize: 11, marginTop: 4, color: "#4a453d" }}>Requires Slack MCP connected in Claude settings</div>
         </div>
       )}
     </div>
   );
 }
 
+// ── Main App ─────────────────────────────────────────────────────
 export default function PMHub() {
   const [activeTab, setActiveTab] = useState("playbook");
   const [activePain, setActivePain] = useState("stakeholder");
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => setMounted(true), 100);
-  }, []);
+  useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
 
   const activePainData = painPoints.find(p => p.id === activePain);
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: C.bg,
-      color: C.text,
-      fontFamily: "'Barlow', sans-serif",
-    }}>
+    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Sora', sans-serif" }}>
       <style>{`
-        html, body, #root { background: #0F0E0B !important; min-height: 100vh; }
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 4px; background: #0F0E0B; }
-        ::-webkit-scrollbar-track { background: #0F0E0B; }
-        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 2px; }
-        ::-webkit-scrollbar-corner { background: #0F0E0B; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-        @keyframes grain {
-          0%, 100% { transform: translate(0, 0); }
-          10% { transform: translate(-2%, -3%); }
-          30% { transform: translate(3%, 2%); }
-          50% { transform: translate(-1%, 4%); }
-          70% { transform: translate(4%, -1%); }
-          90% { transform: translate(-3%, 2%); }
-        }
-        .nav-tab { transition: all 0.2s; }
-        .nav-tab:hover { color: ${C.cream} !important; }
+        html, body, #root { background: #080E1A !important; margin: 0; padding: 0; min-height: 100vh; }
+        *, *::before, *::after { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 4px; background: #080E1A; }
+        ::-webkit-scrollbar-track { background: #080E1A; }
+        ::-webkit-scrollbar-thumb { background: #1E2E47; border-radius: 2px; }
+        ::-webkit-scrollbar-corner { background: #080E1A; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        @keyframes shimmer { 0% { opacity:0.5; } 50% { opacity:1; } 100% { opacity:0.5; } }
+        .tab-btn { transition: all 0.2s; }
+        .tab-btn:hover { color: #E8F0FF !important; }
         .pain-btn { transition: all 0.2s; cursor: pointer; }
-        .pain-btn:hover { border-color: currentColor !important; }
+        .pain-btn:hover { background: rgba(0,212,255,0.06) !important; }
         .tool-card { transition: all 0.2s; }
-        .tool-card:hover { background: ${C.cardHover} !important; border-color: ${C.borderHover} !important; transform: translateY(-2px); }
-        .cs-card { transition: all 0.2s; }
-        .cs-card:hover { border-color: ${C.borderHover} !important; }
+        .tool-card:hover { background: #162338 !important; transform: translateY(-2px); }
+        input, select { transition: border-color 0.2s; }
+        input:focus, select:focus { border-color: #00D4FF !important; }
       `}</style>
 
-      {/* Grain overlay */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 100,
-        opacity: 0.025,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        animation: "grain 0.5s steps(1) infinite",
-      }} />
-
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 24px" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
 
         {/* ── Hero ── */}
         <div style={{
-          paddingTop: 56,
-          paddingBottom: 48,
+          paddingTop: 52, paddingBottom: 44,
           borderBottom: `1px solid ${C.border}`,
           opacity: mounted ? 1 : 0,
-          animation: mounted ? "fadeUp 0.6s ease both" : "none",
+          animation: mounted ? "fadeUp 0.5s ease both" : "none",
         }}>
-          {/* Eyebrow */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-            <div style={{ width: 32, height: 1, background: C.amber }} />
-            <span style={{ fontSize: 11, color: C.amber, fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-              Delivery PM × AI
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div style={{ width: 28, height: 1, background: C.cyan }} />
+            <span style={{ fontSize: 11, color: C.cyan, fontFamily: "'DM Mono', monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>
+              Delivery PM × AI Workflows
             </span>
           </div>
 
-          {/* Title */}
           <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 280 }}>
+            <div style={{ flex: 1, minWidth: 260 }}>
               <h1 style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: "clamp(44px, 7vw, 76px)",
-                fontWeight: 900,
+                fontFamily: "'Sora', sans-serif", fontSize: "clamp(42px, 7vw, 72px)",
+                fontWeight: 800, margin: "0 0 16px", lineHeight: 0.95, letterSpacing: "-0.02em",
                 color: C.white,
-                margin: "0 0 16px",
-                lineHeight: 0.95,
-                letterSpacing: "-0.01em",
-                textTransform: "uppercase",
               }}>
                 PM<br />
-                <span style={{ color: C.amber }}>AI</span><br />
+                <span style={{ background: `linear-gradient(135deg, ${C.cyan}, ${C.indigo})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>AI</span><br />
                 HUB
               </h1>
-              <p style={{ fontSize: 16, color: C.mutedLight, lineHeight: 1.7, margin: "0 0 24px", maxWidth: 420 }}>
-                Practical AI workflows for Delivery Program Managers.
-                Real prompts, live tools, and case studies — not theory.
+              <p style={{ fontSize: 15, color: C.mutedLight, lineHeight: 1.7, margin: "0 0 22px", maxWidth: 400 }}>
+                Practical AI workflows for Delivery Program Managers. Real prompts with step-by-step guides, live tools, and no fluff.
               </p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <Tag color={C.amber}>Stakeholder Reporting</Tag>
-                <Tag color={C.rose}>Escalation Handling</Tag>
-                <Tag color={C.teal}>Sprint Tracking</Tag>
+                <Chip color={C.cyan}>Stakeholder Reporting</Chip>
+                <Chip color={C.rose}>Escalation Handling</Chip>
+                <Chip color={C.mint}>Sprint Tracking</Chip>
               </div>
             </div>
 
-            {/* Stats block */}
-            <div style={{
-              background: C.card,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              padding: "24px",
-              minWidth: 220,
-            }}>
+            {/* Stats */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "22px 24px", minWidth: 210 }}>
               {[
-                { n: "12+", label: "Ready-to-use prompts" },
-                { n: "3", label: "Core PM pain points" },
-                { n: "2", label: "Live AI workflow tools" },
-                { n: "∞", label: "Hours saved per week" },
-              ].map((s, i) => (
-                <div key={i} style={{
-                  paddingBottom: i < 3 ? 16 : 0,
-                  marginBottom: i < 3 ? 16 : 0,
-                  borderBottom: i < 3 ? `1px solid ${C.border}` : "none",
-                }}>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: C.amber, fontFamily: "'Barlow Condensed', sans-serif", lineHeight: 1 }}>{s.n}</div>
-                  <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{s.label}</div>
+                { n: "12+", label: "Ready-to-use prompts", color: C.cyan },
+                { n: "3", label: "Core PM pain points", color: C.indigo },
+                { n: "1", label: "Live AI tool", color: C.mint },
+                { n: "∞", label: "Hours saved per week", color: C.rose },
+              ].map((s, i, arr) => (
+                <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 14 : 0, marginBottom: i < arr.length - 1 ? 14 : 0, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: s.color, fontFamily: "'Sora', sans-serif", lineHeight: 1 }}>{s.n}</div>
+                  <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── Nav Tabs ── */}
-        <div style={{
-          display: "flex",
-          gap: 0,
-          borderBottom: `1px solid ${C.border}`,
-          marginBottom: 36,
-        }}>
+        {/* ── Tabs ── */}
+        <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, marginBottom: 32 }}>
           {[
             { id: "playbook", label: "🎓 Prompt Playbook" },
             { id: "tools", label: "⚙️ Workflow Lab" },
-            { id: "cases", label: "📖 Case Studies" },
+            { id: "roadmap", label: "🗺️ Roadmap" },
           ].map(tab => (
-            <button
-              key={tab.id}
-              className="nav-tab"
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                background: "none",
-                border: "none",
-                borderBottom: `2px solid ${activeTab === tab.id ? C.amber : "transparent"}`,
-                color: activeTab === tab.id ? C.amber : C.muted,
-                padding: "16px 24px",
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: "'DM Mono', monospace",
-                letterSpacing: "0.04em",
-                cursor: "pointer",
-                marginBottom: -1,
-                transition: "all 0.2s",
-              }}
-            >{tab.label}</button>
+            <button key={tab.id} className="tab-btn" onClick={() => setActiveTab(tab.id)} style={{
+              background: "none", border: "none",
+              borderBottom: `2px solid ${activeTab === tab.id ? C.cyan : "transparent"}`,
+              color: activeTab === tab.id ? C.cyan : C.muted,
+              padding: "14px 22px", fontSize: 13, fontWeight: 600,
+              fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em",
+              cursor: "pointer", marginBottom: -1, transition: "all 0.2s",
+            }}>{tab.label}</button>
           ))}
         </div>
 
-        {/* ══ PLAYBOOK TAB ══ */}
+        {/* ══ PLAYBOOK ══ */}
         {activeTab === "playbook" && (
-          <div style={{ animation: "fadeUp 0.35s ease both" }}>
-            <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
+          <div style={{ animation: "fadeUp 0.3s ease both" }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
               {painPoints.map(p => (
-                <button
-                  key={p.id}
-                  className="pain-btn"
-                  onClick={() => setActivePain(p.id)}
-                  style={{
-                    background: activePain === p.id ? `${p.color}15` : "transparent",
-                    border: `1px solid ${activePain === p.id ? p.color : C.border}`,
-                    borderRadius: 8,
-                    padding: "10px 18px",
-                    color: activePain === p.id ? p.color : C.muted,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    fontFamily: "'DM Mono', monospace",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    transition: "all 0.2s",
-                  }}
-                >
-                  <span>{p.emoji}</span>
-                  <span>{p.label}</span>
+                <button key={p.id} className="pain-btn" onClick={() => setActivePain(p.id)} style={{
+                  background: activePain === p.id ? `${p.color}12` : "transparent",
+                  border: `1px solid ${activePain === p.id ? p.color : C.border}`,
+                  borderRadius: 8, padding: "9px 16px",
+                  color: activePain === p.id ? p.color : C.muted,
+                  fontSize: 13, fontWeight: 600, fontFamily: "'DM Mono', monospace",
+                  display: "flex", alignItems: "center", gap: 7,
+                }}>
+                  <span>{p.emoji}</span><span>{p.label}</span>
                 </button>
               ))}
             </div>
 
             {activePainData && (
-              <div>
-                {/* Pain point header */}
+              <>
                 <div style={{
-                  background: `linear-gradient(135deg, ${activePainData.color}08 0%, transparent 100%)`,
+                  background: `linear-gradient(135deg, ${activePainData.color}08, transparent)`,
                   border: `1px solid ${activePainData.color}25`,
-                  borderRadius: 12,
-                  padding: "20px 24px",
-                  marginBottom: 20,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: 12,
+                  borderRadius: 12, padding: "18px 22px", marginBottom: 18,
+                  display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10,
                 }}>
                   <div>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>{activePainData.emoji}</div>
-                    <h2 style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      fontSize: 28,
-                      fontWeight: 800,
-                      color: C.white,
-                      margin: "0 0 6px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.02em",
-                    }}>{activePainData.label}</h2>
-                    <p style={{ margin: 0, fontSize: 14, color: C.mutedLight }}>{activePainData.desc}</p>
+                    <div style={{ fontSize: 20, marginBottom: 4 }}>{activePainData.emoji}</div>
+                    <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, color: C.white, margin: "0 0 4px" }}>{activePainData.label}</h2>
+                    <p style={{ margin: 0, fontSize: 13, color: C.mutedLight }}>{activePainData.desc}</p>
                   </div>
-                  <Tag color={activePainData.tagColor}>{activePainData.tag}</Tag>
+                  <Chip color={activePainData.color}>{activePainData.tag}</Chip>
                 </div>
-
-                {/* Prompt cards */}
-                {activePainData.prompts.map((p, i) => (
-                  <PromptCard key={i} prompt={p} accentColor={activePainData.color} />
-                ))}
-
-                {/* Tease more */}
-                <div style={{
-                  border: `1px dashed ${C.border}`,
-                  borderRadius: 10,
-                  padding: "20px",
-                  textAlign: "center",
-                  color: C.muted,
-                  fontSize: 13,
-                }}>
-                  + More {activePainData.label} prompts coming soon
+                {activePainData.prompts.map((p, i) => <PromptCard key={i} prompt={p} accentColor={activePainData.color} />)}
+                <div style={{ border: `1px dashed ${C.border}`, borderRadius: 10, padding: "18px", textAlign: "center", color: C.muted, fontSize: 13 }}>
+                  + More prompts for {activePainData.label} coming soon
                 </div>
-              </div>
+              </>
             )}
           </div>
         )}
 
-        {/* ══ TOOLS TAB ══ */}
+        {/* ══ TOOLS ══ */}
         {activeTab === "tools" && (
-          <div style={{ animation: "fadeUp 0.35s ease both" }}>
-            <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: C.white, margin: "0 0 8px", textTransform: "uppercase" }}>
-                Live Workflow Lab
-              </h2>
-              <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
-                AI-powered tools built for real Delivery PM workflows — use them right here.
-              </p>
+          <div style={{ animation: "fadeUp 0.3s ease both" }}>
+            <div style={{ marginBottom: 22 }}>
+              <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: C.white, margin: "0 0 6px" }}>Live Workflow Lab</h2>
+              <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>AI tools built for real Delivery PM workflows — use them right here, no setup needed.</p>
             </div>
 
-            {/* ── Slack Summarizer — Live ── */}
-            <div style={{ marginBottom: 20 }}>
+            {/* Slack Summarizer — live */}
+            <div style={{ marginBottom: 24 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <span style={{ fontSize: 20 }}>💬</span>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.02em" }}>Slack Channel Summarizer</span>
-                    <Tag color={C.teal} small>Live Tool</Tag>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "'Sora', sans-serif" }}>Slack Channel Summarizer</span>
+                    <Chip color={C.mint} small>Live</Chip>
                   </div>
-                  <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Reads any Slack channel and extracts blockers, decisions & action items using Claude AI</div>
+                  <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
+                    Reads any Slack channel and extracts blockers, decisions & action items using Claude AI
+                  </div>
                 </div>
               </div>
               <SlackSummarizer />
             </div>
 
-            {/* ── Coming Soon Tools ── */}
-            <div style={{ marginBottom: 8 }}>
+            {/* Coming soon grid */}
+            <div style={{ marginBottom: 10 }}>
               <div style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Coming Soon</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-                {workflowTools.filter(t => t.tag === "Coming Soon").map((t, i) => (
-                  <div key={i} className="tool-card" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px", opacity: 0.55 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 12 }}>
+                {workflowTools.map((t, i) => (
+                  <div key={i} className="tool-card" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px", opacity: 0.5 }}>
                     <div style={{ fontSize: 24, marginBottom: 10 }}>{t.emoji}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: C.cream, fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", marginBottom: 6 }}>{t.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: C.textBright, fontFamily: "'Sora', sans-serif", marginBottom: 6 }}>{t.name}</div>
                     <p style={{ margin: 0, fontSize: 12, color: C.mutedLight, lineHeight: 1.5 }}>{t.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Tech stack */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px 20px", marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 11, color: C.amber, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Under the Hood</div>
-                <div style={{ fontSize: 13, color: C.mutedLight }}>Built with Claude API + MCP — real connections, not mock data</div>
-              </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {["Claude Sonnet", "Slack MCP", "React", "Anthropic API"].map(t => (
-                  <Tag key={t} color={C.muted} small>{t}</Tag>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
-        {/* ══ CASE STUDIES TAB ══ */}
-        {activeTab === "cases" && (
-          <div style={{ animation: "fadeUp 0.35s ease both" }}>
+        {/* ══ ROADMAP ══ */}
+        {activeTab === "roadmap" && (
+          <div style={{ animation: "fadeUp 0.3s ease both" }}>
             <div style={{ marginBottom: 28 }}>
-              <h2 style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: 32,
-                fontWeight: 800,
-                color: C.white,
-                margin: "0 0 8px",
-                textTransform: "uppercase",
-              }}>Case Study Journal</h2>
-              <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
-                Real delivery problems. Exact prompts used. Measurable outcomes.
-              </p>
+              <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: C.white, margin: "0 0 6px" }}>What's Being Built</h2>
+              <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>This hub grows with real PM needs. Here's what's coming next.</p>
             </div>
 
-            {caseStudies.map((cs, i) => (
-              <div
-                key={i}
-                className="cs-card"
-                style={{
-                  background: C.card,
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 12,
-                  padding: "28px",
-                  marginBottom: 16,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-                  <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em" }}>{cs.tag}</span>
-                  <Tag color={cs.painColor}>{cs.pain}</Tag>
+            {[
+              {
+                phase: "Now — Live", color: C.mint, status: "live",
+                items: [
+                  { name: "Prompt Playbook", desc: "12 copy-paste prompts across 3 PM pain points with step-by-step guides" },
+                  { name: "Slack Summarizer", desc: "AI reads any Slack channel and extracts blockers, decisions & action items" },
+                ]
+              },
+              {
+                phase: "Next — In Progress", color: C.cyan, status: "building",
+                items: [
+                  { name: "RAID Log Agent", desc: "Paste meeting notes → auto-populated RAID log ready to share" },
+                  { name: "Case Study Journal", desc: "Real delivery problems, exact prompts used, measurable outcomes" },
+                  { name: "More Prompts", desc: "Release readiness, capacity planning, and dependency mapping prompts" },
+                ]
+              },
+              {
+                phase: "Later — Planned", color: C.indigo, status: "planned",
+                items: [
+                  { name: "Status Report Bot", desc: "Connects to Jira + Slack and drafts weekly reports for your approval" },
+                  { name: "Escalation Triage", desc: "Classifies incidents by severity and generates tailored comms per audience" },
+                  { name: "Retro Pattern Tracker", desc: "Persistent retro analysis across sprints — spots what keeps going wrong" },
+                ]
+              },
+            ].map((phase, pi) => (
+              <div key={pi} style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: phase.color, boxShadow: phase.status === "live" ? `0 0 8px ${phase.color}` : "none", animation: phase.status === "live" ? "pulse 1.4s ease-in-out infinite" : "none" }} />
+                  <span style={{ fontSize: 12, color: phase.color, fontFamily: "'DM Mono', monospace", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>{phase.phase}</span>
                 </div>
-
-                <h3 style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 24,
-                  fontWeight: 800,
-                  color: C.white,
-                  margin: "0 0 12px",
-                  lineHeight: 1.2,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.01em",
-                }}>{cs.title}</h3>
-
-                <p style={{ color: C.mutedLight, fontSize: 14, lineHeight: 1.7, margin: "0 0 20px" }}>{cs.excerpt}</p>
-
-                {/* Steps */}
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {cs.steps.map((s, j) => (
-                    <div key={j} style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      background: C.surface,
-                      border: `1px solid ${C.border}`,
-                      borderRadius: 6,
-                      padding: "6px 12px",
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
+                  {phase.items.map((item, ii) => (
+                    <div key={ii} style={{
+                      background: C.card, border: `1px solid ${phase.status === "live" ? phase.color + "30" : C.border}`,
+                      borderRadius: 10, padding: "16px 18px",
+                      opacity: phase.status === "planned" ? 0.65 : 1,
                     }}>
-                      <span style={{ color: cs.painColor, fontSize: 11, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>{String(j + 1).padStart(2, "0")}</span>
-                      <span style={{ fontSize: 12, color: C.mutedLight }}>{s}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: C.textBright, fontFamily: "'Sora', sans-serif" }}>{item.name}</span>
+                        {phase.status === "live" && <Chip color={C.mint} small>Live</Chip>}
+                        {phase.status === "building" && <Chip color={C.cyan} small>Soon</Chip>}
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: C.mutedLight, lineHeight: 1.6 }}>{item.desc}</p>
                     </div>
                   ))}
-                </div>
-
-                <div style={{ marginTop: 20 }}>
-                  <span style={{
-                    color: cs.painColor,
-                    fontSize: 12,
-                    fontFamily: "'DM Mono', monospace",
-                    fontWeight: 700,
-                    letterSpacing: "0.06em",
-                    cursor: "pointer",
-                  }}>READ FULL CASE STUDY →</span>
                 </div>
               </div>
             ))}
 
-            {/* CTA */}
-            <div style={{
-              background: `linear-gradient(135deg, ${C.amberDim} 0%, transparent 100%)`,
-              border: `1px solid ${C.amber}30`,
-              borderRadius: 12,
-              padding: "28px",
-              textAlign: "center",
-            }}>
-              <div style={{ fontSize: 28, marginBottom: 12 }}>✍️</div>
-              <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 800, color: C.white, margin: "0 0 8px", textTransform: "uppercase" }}>
-                More Case Studies In Progress
-              </h3>
-              <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
-                Building: RAID Log automation · Escalation triage · Release readiness scoring
-              </p>
+            <div style={{ background: `${C.indigo}08`, border: `1px dashed ${C.indigo}30`, borderRadius: 12, padding: "22px", textAlign: "center", marginTop: 8 }}>
+              <div style={{ fontSize: 24, marginBottom: 10 }}>💡</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.textBright, fontFamily: "'Sora', sans-serif", marginBottom: 6 }}>Have a PM pain point to solve?</div>
+              <p style={{ color: C.mutedLight, fontSize: 13, margin: 0 }}>This hub is built from real delivery problems. If you have a workflow that needs automating, reach out on LinkedIn.</p>
             </div>
           </div>
         )}
 
         {/* ── Footer ── */}
-        <div style={{
-          borderTop: `1px solid ${C.border}`,
-          marginTop: 60,
-          padding: "28px 0",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-        }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: C.amber, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 56, padding: "24px 0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+          <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 800, background: `linear-gradient(135deg, ${C.cyan}, ${C.indigo})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             PM AI Hub
           </span>
-          <span style={{ fontSize: 12, color: C.muted, fontFamily: "'DM Mono', monospace" }}>
-            Built by a Delivery PM · Powered by Claude
-          </span>
+          <span style={{ fontSize: 11, color: C.muted, fontFamily: "'DM Mono', monospace" }}>Built by a Delivery PM · Powered by Claude</span>
         </div>
-
       </div>
     </div>
   );
