@@ -65,4 +65,4 @@ Every push to `main` auto-deploys via GitHub Actions. No manual steps needed.
 ## Built By
 
 A Delivery Program Manager exploring the intersection of AI and program delivery.
-Connect on LinkedIn: `[[Your LinkedIn URL]](https://www.linkedin.com/in/nikhil-thomas-a-58538117a/)`
+Connect on LinkedIn: `https://www.linkedin.com/in/nikhil-thomas-a-58538117a`
