@@ -667,10 +667,15 @@ export default function PMHub() {
               <Chip color={T.coral}>Escalation</Chip>
               <Chip color={T.amber}>Sprint</Chip>
             </div>
-            <a href="https://www.linkedin.com/in/nikhil-thomas-a-58538117a/" target="_blank" rel="noopener noreferrer" style={{ display:"inline-flex", alignItems:"center", gap:6, color:T.mutedLight, fontSize:12, textDecoration:"none", fontFamily:"'DM Mono', monospace", letterSpacing:"0.04em", border:`1px solid ${T.border}`, borderRadius:6, padding:"5px 11px" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill={T.mutedLight}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
-              Nikhil Thomas A
-            </a>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <a href="https://nikhil-thomas-a.github.io/portfolio/" target="_blank" rel="noopener noreferrer" style={{ display:"inline-flex", alignItems:"center", gap:6, color:T.accent, fontSize:12, textDecoration:"none", fontFamily:"'DM Mono', monospace", letterSpacing:"0.04em", border:`1px solid ${T.accent}40`, borderRadius:6, padding:"5px 11px", fontWeight:700 }}>
+                ← Portfolio
+              </a>
+              <a href="https://www.linkedin.com/in/nikhil-thomas-a-58538117a/" target="_blank" rel="noopener noreferrer" style={{ display:"inline-flex", alignItems:"center", gap:6, color:T.mutedLight, fontSize:12, textDecoration:"none", fontFamily:"'DM Mono', monospace", letterSpacing:"0.04em", border:`1px solid ${T.border}`, borderRadius:6, padding:"5px 11px" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill={T.mutedLight}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+                Nikhil Thomas A
+              </a>
+            </div>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:10, alignItems:"flex-end" }}>
             {/* Theme toggle */}
@@ -812,10 +817,12 @@ export default function PMHub() {
         {/* ── FOOTER ── */}
         <div style={{ borderTop:`1px solid ${T.border}`, marginTop:50, padding:"18px 0", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
           <span style={{ fontFamily:"'Sora', sans-serif", fontSize:15, fontWeight:800, color:T.accent }}>PM AI Hub</span>
-          <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-            <a href="https://www.linkedin.com/in/nikhil-thomas-a-58538117a/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, color:T.mutedLight, fontFamily:"'DM Mono', monospace", textDecoration:"none" }}>Nikhil Thomas A</a>
+          <div style={{ display:"flex", gap:12, alignItems:"center", flexWrap:"wrap" }}>
+            <a href="https://nikhil-thomas-a.github.io/portfolio/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, color:T.mutedLight, fontFamily:"'DM Mono', monospace", textDecoration:"none" }}>Nikhil Thomas A</a>
             <span style={{ fontSize:11, color:T.muted }}>·</span>
-            <span style={{ fontSize:11, color:T.muted, fontFamily:"'DM Mono', monospace" }}>Powered by Claude</span>
+            <a href="https://nikhil-thomas-a.github.io/startup-ops-toolkit/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, color:T.mutedLight, fontFamily:"'DM Mono', monospace", textDecoration:"none" }}>Startup Ops Toolkit</a>
+            <span style={{ fontSize:11, color:T.muted }}>·</span>
+            <span style={{ fontSize:11, color:T.muted, fontFamily:"'DM Mono', monospace" }}>Free forever</span>
           </div>
         </div>
 
