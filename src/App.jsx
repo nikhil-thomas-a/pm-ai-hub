@@ -544,6 +544,7 @@ function PromptCard({ prompt, T }) {
 
 function SlackHowTo({ T }) {
   const [copiedIdx, setCopiedIdx] = useState(null);
+  const [activeStep, setActiveStep] = useState(null);
   const prompts = [
     { label:"Quick Channel Summary", desc:"Fast PM briefing from any Slack channel",
       prompt:`Read the last 30 messages from Slack channel #[your-channel-name] and give me a PM briefing:\n\n- TL;DR (2-3 sentences)\n- Action items (owner + urgency: high/medium/low)\n- Blockers mentioned\n- Key decisions made\n- Overall sentiment (positive / neutral / tense / urgent)\n- Anyone who needs a follow-up from me` },
@@ -582,17 +583,22 @@ function SlackHowTo({ T }) {
       </div>
       <div style={{ fontSize:10, color:T.mutedLight, fontFamily:"'DM Mono', monospace", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10 }}>Copy a prompt → paste into Claude.ai</div>
       {prompts.map((p,i)=>(
-        <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"13px 16px", marginBottom:10 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:7, gap:8 }}>
+        <div key={i} style={{ background:T.card, border:`1px solid ${activeStep===i ? T.teal+"50" : T.border}`, borderRadius:10, padding:"13px 16px", marginBottom:10, transition:"border-color 0.2s", cursor:"pointer" }} onClick={()=>setActiveStep(activeStep===i?null:i)}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom: activeStep===i ? 10 : 0, gap:8 }}>
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:T.textBright, marginBottom:1 }}>{p.label}</div>
               <div style={{ fontSize:11, color:T.mutedLight }}>{p.desc}</div>
             </div>
-            <button onClick={()=>copy(p.prompt,i)} style={{ background:copiedIdx===i?T.accentDim:"transparent", border:`1px solid ${copiedIdx===i?T.accent:T.border}`, color:copiedIdx===i?T.accent:T.mutedLight, borderRadius:6, padding:"4px 10px", fontSize:11, fontFamily:"'DM Mono', monospace", fontWeight:700, letterSpacing:"0.06em", cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap", flexShrink:0 }}>
-              {copiedIdx===i?"✓ COPIED":"COPY"}
-            </button>
+            <div style={{ display:"flex", gap:6, flexShrink:0, alignItems:"center" }}>
+              <button onClick={e=>{ e.stopPropagation(); copy(p.prompt,i); }} style={{ background:copiedIdx===i?T.accentDim:"transparent", border:`1px solid ${copiedIdx===i?T.accent:T.border}`, color:copiedIdx===i?T.accent:T.mutedLight, borderRadius:6, padding:"4px 10px", fontSize:11, fontFamily:"'DM Mono', monospace", fontWeight:700, letterSpacing:"0.06em", cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap" }}>
+                {copiedIdx===i?"✓ COPIED":"COPY"}
+              </button>
+              <span style={{ color:T.mutedLight, fontSize:12, display:"inline-block", transform:activeStep===i?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}>▾</span>
+            </div>
           </div>
-          <pre style={{ margin:0, fontSize:11, color:T.mutedLight, fontFamily:"'DM Mono', monospace", whiteSpace:"pre-wrap", lineHeight:1.7, background:T.surface, borderRadius:6, padding:"9px 11px" }}>{p.prompt}</pre>
+          {activeStep===i && (
+            <pre style={{ margin:0, fontSize:11, color:T.mutedLight, fontFamily:"'DM Mono', monospace", whiteSpace:"pre-wrap", lineHeight:1.7, background:T.surface, borderRadius:6, padding:"9px 11px" }}>{p.prompt}</pre>
+          )}
         </div>
       ))}
       <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, background:T.accent, color:"#fff", borderRadius:10, padding:"12px 20px", fontSize:12, fontWeight:700, fontFamily:"'DM Mono', monospace", letterSpacing:"0.08em", textDecoration:"none", marginTop:12 }}>
