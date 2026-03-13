@@ -332,55 +332,6 @@ ${d||"[Paste your release notes, test results, or sign-off status]"}`,
     tips:["Run 48 hours before release — time to fix conditional issues","Add 'We cannot delay — business deadline is X' for conditional Go","Share output with engineering lead to align on final decision"],
     steps:["Gather test results, open bugs, sign-off status, infra notes","Paste into the input above","Run — Go/No-Go with clear reasoning","Review blockers list with your tech lead immediately","Turn conditions into a checklist for the 24 hours before release"],
   },
-  {
-    id:"sp6", category:"sprint", categoryLabel:"Sprint & Delivery", emoji:"🗂️", isNew:true,
-    title:"RAID Log Agent", difficulty:"Intermediate", time:"3 min",
-    tags:["RAID","risk","action","issue","decision","log","governance","meeting"],
-    problem:"Your RAID log is always out of date. Updating it after every meeting is manual, slow, and easy to forget — so risks and decisions get lost.",
-    inputLabel:"Paste your meeting notes, standup thread, or sprint review summary",
-    inputPlaceholder:`e.g. Sprint review notes — 14 May 2025
-
-Discussed: API integration with payment provider is 2 days late due to missing credentials from client (Sarah to chase by EOD Friday). Decision made to proceed with mock data for demo on Thursday. James raised concern about load testing — we haven't done any for the new checkout flow. Agreed to add load test to next sprint scope. Blocker: DevOps team needs prod access approval from IT Security, currently waiting 5 days. Marketing confirmed go-live date is fixed at 28 May — no flex.`,
-    promptTemplate:(d)=>`You are a Delivery PM maintaining a RAID log. Extract all Risks, Actions, Issues, and Decisions from the notes below. Output a structured RAID log update.
-
-FORMAT each item as:
-
-RISKS (things that could go wrong)
-| ID | Description | Likelihood (H/M/L) | Impact (H/M/L) | Owner | Mitigation | Status |
-
-ACTIONS (agreed next steps with owners)
-| ID | Action | Owner | Due Date | Priority (H/M/L) | Status |
-
-ISSUES (problems actively affecting the project right now)
-| ID | Description | Impact | Owner | Resolution Plan | Status |
-
-DECISIONS (agreed choices that should be recorded)
-| ID | Decision Made | Rationale | Made By | Date | Impact |
-
-RULES:
-- Assign IDs as R001, A001, I001, D001 etc.
-- Infer due dates from context (e.g. "by EOD Friday" → use relative date)
-- If owner is not named, write "TBC"
-- If status is not mentioned, default to: Risks → Open, Actions → In Progress, Issues → Open, Decisions → Closed
-- Do not invent items — only extract what is explicitly or clearly implied in the notes
-- After the tables, add a "⚠️ Watch List" section with the top 2-3 items needing immediate attention
-
-MEETING NOTES / UPDATES:
-${d||"[Paste your meeting notes, standup thread, or sprint review here]"}`,
-    tips:[
-      "Works best with detailed meeting notes — the more context, the richer the output",
-      "Add 'Focus only on technical risks' to filter noise for engineering reviews",
-      "Run after every sprint review or stakeholder meeting to keep the log current",
-      "Paste the output directly into Confluence, Notion, or your RAID spreadsheet",
-    ],
-    steps:[
-      "Copy your meeting notes, standup thread, or sprint review summary",
-      "Paste into the input box above to auto-fill the prompt",
-      "Run in Claude, ChatGPT, or Gemini",
-      "Review each table — check owners and dates are correct",
-      "Paste into your RAID log template or share with your team",
-    ],
-  },
 ];
 
 const CATEGORIES = [
@@ -392,8 +343,8 @@ const CATEGORIES = [
 
 const ROADMAP = [
   { phase:"Now — Live", status:"live", items:[
-    { name:"Prompt Playbook", desc:"14 prompts across 3 PM pain points — including RAID Log Agent — with step-by-step guides" },
-    { name:"RAID Log Agent", desc:"Paste meeting notes → structured RAID log with Risks, Actions, Issues and Decisions in seconds" },
+    { name:"Prompt Playbook", desc:"13 prompts across 3 PM pain points — stakeholder, escalation, sprint & delivery" },
+    { name:"RAID Log Agent", desc:"Workflow Lab — paste meeting notes → structured RAID log ready to share in seconds" },
     { name:"Workflow Lab", desc:"Slack Summariser — 4 ready-to-use prompts for Claude.ai with Slack MCP" },
     { name:"Prompt Search", desc:"Search all prompts by keyword, category, or pain point" },
     { name:"Light / Dark Mode", desc:"Readable in any environment — toggle in the top right" },
@@ -651,6 +602,170 @@ function SlackHowTo({ T }) {
   );
 }
 
+function RAIDWorkflow({ T }) {
+  const [copiedIdx, setCopiedIdx] = useState(null);
+  const [activeStep, setActiveStep] = useState(null);
+
+  const prompts = [
+    {
+      label: "Full RAID Extraction",
+      desc: "Paste meeting notes → structured RAID log with all four quadrants",
+      prompt: `You are a Delivery PM maintaining a RAID log. Extract all Risks, Actions, Issues, and Decisions from the notes below. Output a structured RAID log update.
+
+FORMAT each item as:
+
+RISKS (things that could go wrong)
+| ID | Description | Likelihood (H/M/L) | Impact (H/M/L) | Owner | Mitigation | Status |
+
+ACTIONS (agreed next steps with owners)
+| ID | Action | Owner | Due Date | Priority (H/M/L) | Status |
+
+ISSUES (problems actively affecting the project right now)
+| ID | Description | Impact | Owner | Resolution Plan | Status |
+
+DECISIONS (agreed choices that should be recorded)
+| ID | Decision Made | Rationale | Made By | Date | Impact |
+
+RULES:
+- Assign IDs as R001, A001, I001, D001 etc.
+- Infer due dates from context (e.g. "by EOD Friday" → use relative date)
+- If owner is not named, write "TBC"
+- Default status: Risks → Open, Actions → In Progress, Issues → Open, Decisions → Closed
+- Do not invent items — only extract what is explicitly or clearly implied
+- After the tables, add a "⚠️ Watch List" of the top 2-3 items needing immediate attention
+
+MEETING NOTES:
+[Paste your meeting notes, standup thread, or sprint review here]`,
+    },
+    {
+      label: "Actions Only (Fast)",
+      desc: "Extract just the action items — owner, due date, priority",
+      prompt: `You are a Delivery PM. Extract all action items from the notes below. Be strict — only include things that were explicitly agreed as next steps.
+
+FORMAT:
+| ID | Action | Owner | Due Date | Priority (H/M/L) | Notes |
+
+RULES:
+- IDs: A001, A002...
+- If no owner named, write "TBC"
+- If no due date, write "TBC"
+- Priority: H = blocks delivery, M = important but not blocking, L = nice to have
+- After the table, flag any actions with no owner or no due date as "⚠️ Needs clarification"
+
+NOTES:
+[Paste your meeting notes here]`,
+    },
+    {
+      label: "Risk Register Update",
+      desc: "Surface new risks and update existing ones from this week's updates",
+      prompt: `You are a Delivery PM updating a risk register after a sprint review. Extract all risks — including subtle ones — from the notes below.
+
+FORMAT:
+| ID | Risk Description | Likelihood (H/M/L) | Impact (H/M/L) | Owner | Mitigation Action | Review Date | Status |
+
+THEN provide:
+- Top 3 risks that need immediate owner attention (explain why)
+- Any risks that appear to have been resolved (flag for closure)
+- One-line executive summary of overall risk posture
+
+RULES:
+- IDs: R001, R002...
+- Look for: delays, dependencies on external parties, resourcing gaps, technical unknowns, stakeholder misalignment
+- If mitigation isn't mentioned, suggest a practical one based on context
+- Status options: Open / Mitigating / Escalated / Closed
+
+NOTES:
+[Paste meeting notes, sprint review, or standup updates here]`,
+    },
+    {
+      label: "Decision Log Update",
+      desc: "Turn informal decisions made in meetings into a formal decision record",
+      prompt: `You are a Delivery PM maintaining a decision log. Extract all decisions — including informal ones — from the notes below.
+
+FORMAT:
+| ID | Decision | Rationale | Made By | Date | Alternatives Considered | Impact | Status |
+
+RULES:
+- IDs: D001, D002...
+- Include implicit decisions (e.g. "we agreed to proceed" = a decision)
+- If rationale wasn't stated, write "Not documented — recommend clarifying"
+- If alternatives weren't discussed, write "None documented"
+- Status: Confirmed / Under Review / Reversed
+
+After the table:
+- Flag any decisions that lack a named decision-maker (governance risk)
+- Flag any decisions that could be reversed easily vs those that are hard to undo
+
+NOTES:
+[Paste your meeting notes or discussion thread here]`,
+    },
+  ];
+
+  function copy(text, idx) {
+    navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  }
+
+  return (
+    <div>
+      {/* Why this works as a workflow */}
+      <div style={{ background:T.amberDim, border:`1px solid ${T.amber}28`, borderRadius:10, padding:"12px 16px", marginBottom:20, display:"flex", gap:10, alignItems:"flex-start" }}>
+        <span style={{ fontSize:16, flexShrink:0 }}>💡</span>
+        <div>
+          <div style={{ fontSize:13, fontWeight:700, color:T.amber, marginBottom:3 }}>Your RAID log, always up to date — in 60 seconds</div>
+          <div style={{ fontSize:12, color:T.mutedLight, lineHeight:1.65 }}>Paste meeting notes into any prompt below, run in <strong style={{color:T.textBright}}>Claude.ai, ChatGPT, or Gemini</strong>, and get a paste-ready RAID log update. No formatting, no manual extraction.</div>
+        </div>
+      </div>
+
+      {/* Steps */}
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontSize:10, color:T.mutedLight, fontFamily:"'DM Mono', monospace", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:12 }}>3 steps to run this</div>
+        {[
+          {n:"1", title:"Copy your meeting notes", desc:"Standup thread, sprint review, client call — any unstructured notes work."},
+          {n:"2", title:"Choose a prompt below and copy it", desc:"Full RAID for sprint reviews. Actions Only for standups. Risk Register for weekly governance."},
+          {n:"3", title:"Paste notes into the prompt, run in any AI", desc:"Replace the placeholder text with your notes. Claude, ChatGPT, and Gemini all work."},
+        ].map((s,i) => (
+          <div key={i} style={{ display:"flex", gap:12, marginBottom:12, alignItems:"flex-start" }}>
+            <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0, background:T.accentDim, border:`1px solid ${T.accent}35`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:T.accent, fontFamily:"'DM Mono', monospace" }}>{s.n}</div>
+            <div style={{ paddingTop:3 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:T.textBright, marginBottom:1 }}>{s.title}</div>
+              <div style={{ fontSize:12, color:T.mutedLight, lineHeight:1.55 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Prompt cards */}
+      <div style={{ fontSize:10, color:T.mutedLight, fontFamily:"'DM Mono', monospace", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10 }}>Choose a prompt → paste your notes → run</div>
+      {prompts.map((p, i) => (
+        <div key={i} style={{ background:T.card, border:`1px solid ${activeStep===i ? T.accent+"50" : T.border}`, borderRadius:10, padding:"13px 16px", marginBottom:10, transition:"border-color 0.2s", cursor:"pointer" }} onClick={() => setActiveStep(activeStep===i ? null : i)}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom: activeStep===i ? 10 : 0, gap:8 }}>
+            <div>
+              <div style={{ fontSize:13, fontWeight:700, color:T.textBright, marginBottom:1 }}>{p.label}</div>
+              <div style={{ fontSize:11, color:T.mutedLight }}>{p.desc}</div>
+            </div>
+            <div style={{ display:"flex", gap:6, flexShrink:0, alignItems:"center" }}>
+              <button onClick={e => { e.stopPropagation(); copy(p.prompt, i); }} style={{ background:copiedIdx===i ? T.accentDim : "transparent", border:`1px solid ${copiedIdx===i ? T.accent : T.border}`, color:copiedIdx===i ? T.accent : T.mutedLight, borderRadius:6, padding:"4px 10px", fontSize:11, fontFamily:"'DM Mono', monospace", fontWeight:700, letterSpacing:"0.06em", cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap" }}>
+                {copiedIdx===i ? "✓ COPIED" : "COPY"}
+              </button>
+              <span style={{ color:T.mutedLight, fontSize:12, display:"inline-block", transform:activeStep===i ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▾</span>
+            </div>
+          </div>
+          {activeStep===i && (
+            <pre style={{ margin:0, fontSize:11, color:T.mutedLight, fontFamily:"'DM Mono', monospace", whiteSpace:"pre-wrap", lineHeight:1.7, background:T.surface, borderRadius:6, padding:"9px 11px" }}>{p.prompt}</pre>
+          )}
+        </div>
+      ))}
+
+      {/* CTA */}
+      <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, background:T.accent, color:"#fff", borderRadius:10, padding:"12px 20px", fontSize:12, fontWeight:700, fontFamily:"'DM Mono', monospace", letterSpacing:"0.08em", textDecoration:"none", marginTop:12 }}>
+        OPEN CLAUDE.AI → RUN THESE PROMPTS LIVE ↗
+      </a>
+    </div>
+  );
+}
+
 // ── MAIN ──────────────────────────────────────────────────────
 export default function PMHub() {
   const [dark,       setDark]      = useState(false);   // LIGHT default
@@ -710,7 +825,7 @@ export default function PMHub() {
               HUB
             </h1>
             <p style={{ fontSize:15, color:T.mutedLight, lineHeight:1.75, margin:"0 0 18px", maxWidth:420 }}>
-              Practical AI workflows for Delivery PMs — 14 prompts across 3 pain points. Paste your data, get an exec-ready output, launch in one click. Built by <strong style={{ color:T.textBright }}>Nikhil Thomas A</strong>.
+              Practical AI workflows for Delivery PMs — 13 prompts + 2 live workflows. Paste your data, get an exec-ready output, launch in one click. Built by <strong style={{ color:T.textBright }}>Nikhil Thomas A</strong>.
             </p>
             <div style={{ display:"flex", gap:7, flexWrap:"wrap", marginBottom:14 }}>
               <Chip color={T.accent}>Stakeholder</Chip>
@@ -796,6 +911,7 @@ export default function PMHub() {
               <h2 style={{ fontFamily:"'Sora', sans-serif", fontSize:22, fontWeight:800, color:T.white, margin:"0 0 5px" }}>Workflow Lab</h2>
               <p style={{ color:T.mutedLight, fontSize:14, margin:0 }}>AI-powered workflows for Delivery PMs — run natively in Claude.ai with Slack connected.</p>
             </div>
+            {/* Slack workflow */}
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               <span style={{ fontSize:19 }}>💬</span>
               <div>
@@ -807,10 +923,33 @@ export default function PMHub() {
               </div>
             </div>
             <SlackHowTo T={T}/>
-            <div style={{ marginTop:26 }}>
+
+            {/* Divider */}
+            <div style={{ display:"flex", alignItems:"center", gap:12, margin:"30px 0 22px" }}>
+              <div style={{ flex:1, height:1, background:T.border }}/>
+              <span style={{ fontSize:10, color:T.mutedLight, fontFamily:"'DM Mono', monospace", letterSpacing:"0.1em", textTransform:"uppercase" }}>also live</span>
+              <div style={{ flex:1, height:1, background:T.border }}/>
+            </div>
+
+            {/* RAID workflow */}
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:19 }}>🗂️</span>
+              <div>
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:T.white }}>RAID Log Agent</span>
+                  <Chip color={T.accent} small>Run in any AI</Chip>
+                  <span style={{ background:"#16a34a", color:"#fff", fontSize:9, fontWeight:800, letterSpacing:"0.12em", padding:"2px 7px", borderRadius:3, textTransform:"uppercase" }}>NEW</span>
+                </div>
+                <div style={{ fontSize:12, color:T.mutedLight, marginTop:2 }}>4 prompts — paste meeting notes, get a paste-ready RAID log update in seconds</div>
+              </div>
+            </div>
+            <RAIDWorkflow T={T}/>
+
+            {/* Coming soon */}
+            <div style={{ marginTop:30 }}>
               <div style={{ fontSize:10, color:T.mutedLight, fontFamily:"'DM Mono', monospace", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10 }}>Coming Soon</div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(210px, 1fr))", gap:11 }}>
-                {[{emoji:"📋",name:"RAID Log Agent",desc:"Paste meeting notes — RAID log auto-populated"},{emoji:"📊",name:"Status Report Bot",desc:"Connects to Jira + Slack, drafts your weekly report"},{emoji:"🔥",name:"Escalation Triage",desc:"Classifies incidents by severity, routes to right owner"}].map((t,i)=>(
+                {[{emoji:"📊",name:"Status Report Bot",desc:"Connects to Jira + Slack, drafts your weekly report"},{emoji:"🔥",name:"Escalation Triage",desc:"Classifies incidents by severity, routes to right owner"}].map((t,i)=>(
                   <div key={i} style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"16px", opacity:0.5 }}>
                     <div style={{ fontSize:21, marginBottom:9 }}>{t.emoji}</div>
                     <div style={{ fontSize:13, fontWeight:700, color:T.textBright, marginBottom:4 }}>{t.name}</div>
