@@ -332,6 +332,55 @@ ${d||"[Paste your release notes, test results, or sign-off status]"}`,
     tips:["Run 48 hours before release — time to fix conditional issues","Add 'We cannot delay — business deadline is X' for conditional Go","Share output with engineering lead to align on final decision"],
     steps:["Gather test results, open bugs, sign-off status, infra notes","Paste into the input above","Run — Go/No-Go with clear reasoning","Review blockers list with your tech lead immediately","Turn conditions into a checklist for the 24 hours before release"],
   },
+  {
+    id:"sp6", category:"sprint", categoryLabel:"Sprint & Delivery", emoji:"🗂️", isNew:true,
+    title:"RAID Log Agent", difficulty:"Intermediate", time:"3 min",
+    tags:["RAID","risk","action","issue","decision","log","governance","meeting"],
+    problem:"Your RAID log is always out of date. Updating it after every meeting is manual, slow, and easy to forget — so risks and decisions get lost.",
+    inputLabel:"Paste your meeting notes, standup thread, or sprint review summary",
+    inputPlaceholder:`e.g. Sprint review notes — 14 May 2025
+
+Discussed: API integration with payment provider is 2 days late due to missing credentials from client (Sarah to chase by EOD Friday). Decision made to proceed with mock data for demo on Thursday. James raised concern about load testing — we haven't done any for the new checkout flow. Agreed to add load test to next sprint scope. Blocker: DevOps team needs prod access approval from IT Security, currently waiting 5 days. Marketing confirmed go-live date is fixed at 28 May — no flex.`,
+    promptTemplate:(d)=>`You are a Delivery PM maintaining a RAID log. Extract all Risks, Actions, Issues, and Decisions from the notes below. Output a structured RAID log update.
+
+FORMAT each item as:
+
+RISKS (things that could go wrong)
+| ID | Description | Likelihood (H/M/L) | Impact (H/M/L) | Owner | Mitigation | Status |
+
+ACTIONS (agreed next steps with owners)
+| ID | Action | Owner | Due Date | Priority (H/M/L) | Status |
+
+ISSUES (problems actively affecting the project right now)
+| ID | Description | Impact | Owner | Resolution Plan | Status |
+
+DECISIONS (agreed choices that should be recorded)
+| ID | Decision Made | Rationale | Made By | Date | Impact |
+
+RULES:
+- Assign IDs as R001, A001, I001, D001 etc.
+- Infer due dates from context (e.g. "by EOD Friday" → use relative date)
+- If owner is not named, write "TBC"
+- If status is not mentioned, default to: Risks → Open, Actions → In Progress, Issues → Open, Decisions → Closed
+- Do not invent items — only extract what is explicitly or clearly implied in the notes
+- After the tables, add a "⚠️ Watch List" section with the top 2-3 items needing immediate attention
+
+MEETING NOTES / UPDATES:
+${d||"[Paste your meeting notes, standup thread, or sprint review here]"}`,
+    tips:[
+      "Works best with detailed meeting notes — the more context, the richer the output",
+      "Add 'Focus only on technical risks' to filter noise for engineering reviews",
+      "Run after every sprint review or stakeholder meeting to keep the log current",
+      "Paste the output directly into Confluence, Notion, or your RAID spreadsheet",
+    ],
+    steps:[
+      "Copy your meeting notes, standup thread, or sprint review summary",
+      "Paste into the input box above to auto-fill the prompt",
+      "Run in Claude, ChatGPT, or Gemini",
+      "Review each table — check owners and dates are correct",
+      "Paste into your RAID log template or share with your team",
+    ],
+  },
 ];
 
 const CATEGORIES = [
@@ -343,13 +392,13 @@ const CATEGORIES = [
 
 const ROADMAP = [
   { phase:"Now — Live", status:"live", items:[
-    { name:"Prompt Playbook", desc:"13 prompts across 3 PM pain points with step-by-step guides and smart data input" },
+    { name:"Prompt Playbook", desc:"14 prompts across 3 PM pain points — including RAID Log Agent — with step-by-step guides" },
+    { name:"RAID Log Agent", desc:"Paste meeting notes → structured RAID log with Risks, Actions, Issues and Decisions in seconds" },
     { name:"Workflow Lab", desc:"Slack Summariser — 4 ready-to-use prompts for Claude.ai with Slack MCP" },
     { name:"Prompt Search", desc:"Search all prompts by keyword, category, or pain point" },
     { name:"Light / Dark Mode", desc:"Readable in any environment — toggle in the top right" },
   ]},
   { phase:"Next — Building", status:"building", items:[
-    { name:"RAID Log Agent", desc:"Paste meeting notes → auto-populated RAID log ready to share" },
     { name:"Case Study Journal", desc:"Real delivery problems, exact prompts used, measurable outcomes" },
     { name:"Jira Integration Prompts", desc:"Prompt workflows that work with Jira exports and API data" },
   ]},
@@ -455,6 +504,7 @@ function PromptCard({ prompt, T }) {
             <span>{prompt.emoji}</span>
             <DiffPip level={prompt.difficulty} T={T}/>
             <span style={{ color:T.mutedLight, fontSize:11, fontFamily:"'DM Mono', monospace" }}>⏱ {prompt.time}</span>
+            {prompt.isNew && <span style={{ background:"#16a34a", color:"#fff", fontSize:9, fontWeight:800, letterSpacing:"0.12em", padding:"2px 7px", borderRadius:3, textTransform:"uppercase" }}>NEW</span>}
           </div>
           <div style={{ fontSize:15, fontWeight:700, color:T.textBright, marginBottom:3 }}>{prompt.title}</div>
           <div style={{ fontSize:12, color:T.mutedLight, lineHeight:1.55 }}>{prompt.problem}</div>
@@ -660,7 +710,7 @@ export default function PMHub() {
               HUB
             </h1>
             <p style={{ fontSize:15, color:T.mutedLight, lineHeight:1.75, margin:"0 0 18px", maxWidth:420 }}>
-              Practical AI workflows for Delivery PMs — paste your data, get a ready-to-run prompt, launch in one click. Built by <strong style={{ color:T.textBright }}>Nikhil Thomas A</strong>.
+              Practical AI workflows for Delivery PMs — 14 prompts across 3 pain points. Paste your data, get an exec-ready output, launch in one click. Built by <strong style={{ color:T.textBright }}>Nikhil Thomas A</strong>.
             </p>
             <div style={{ display:"flex", gap:7, flexWrap:"wrap", marginBottom:14 }}>
               <Chip color={T.accent}>Stakeholder</Chip>
