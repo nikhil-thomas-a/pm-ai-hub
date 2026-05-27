@@ -2,7 +2,7 @@
 
 > Practical AI workflows for Delivery Program Managers — built by someone who has run real standups, written real escalations, and sat through more sprint retros than they'd like to admit.
 
-🌐 **Live site:** [nikhil-thomas-a.github.io/pm-ai-hub](https://nikhil-thomas-a.github.io/pm-ai-hub)
+🌐 **Live site:** [pm-ai-hub.vercel.app](https://pm-ai-hub.vercel.app)
 
 ---
 
@@ -78,8 +78,8 @@ Real delivery problems, exact prompts used, measurable outcomes.
 | Frontend | React 18 + Vite |
 | AI | Claude API (Anthropic — claude-sonnet) |
 | Integration | Slack MCP |
-| CI/CD | GitHub Actions → GitHub Pages |
-| Hosting | GitHub Pages |
+| CI/CD | GitHub Actions → Vercel |
+| Hosting | Vercel |
 
 ---
 
